@@ -89,11 +89,10 @@ def run_single_design():
 
 def get_pieces(a,pieces):
     
-    a_n=np.repeat(a/pieces,pieces,axis=1)
-    index=np.arange(pieces)+1
+    a_n=np.repeat(a/pieces,pieces+1,axis=1)
+    index=np.arange(pieces+1)
     #print('Index is:',index)
     _loc_= np.multiply(a_n,index)
-    
     return _loc_
 
 
@@ -104,6 +103,12 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
     bounds=[[0.1,5],[1,50]]
     grid = 3
     pieces=5
+    
+    x_ref=np.array([0,a,a+b,a+b+c])
+    y_ref=np.array([0,r,r,0])
+    
+    x_body=np.array([a,a+b])
+    y_body=np.array([r,r])
     
     print('bound:',bounds[0][0],bounds[0][1],bounds[1][0],bounds[1][1])
  
@@ -126,11 +131,19 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
     print(_t_p_)
     print(tail_x)
     
-    ref= [r/5,2*r/5, 3*r/5,4*r/5,r]
+    #ref= [r/5,2*r/5, 3*r/5,4*r/5]
     nose_y= estimate_nose(a,r,nose_x,ds[:,4])
     print('nose_x shape:',nose_x.shape,'Nose_y:',nose_y.shape)
     for i in range(nose_x.shape[0]): 
-        print()
+        plt.figure(figsize=(10, 3))
+        plt.plot(nose_x[i,:], nose_y[i,:])
+        plt.scatter(nose_x[i,:], nose_y[i,:])
+        plt.plot(nose_x[i,:], -1*nose_y[i,:])
+        
+        plt.plot(x_body, y_body)
+        plt.plot(x_body, -1*y_body)
+        plt.show()
+        plt.close()
     
     
     
