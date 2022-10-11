@@ -17,20 +17,28 @@ import random
 #########
 def estimate_nose(a,r,x,n):
     d=2*r
-    print('n shape:',n.shape)
+    #print('n shape:',n.shape)
     exp_power=np.transpose(np.divide(1,n))
-    print(exp_power)
-    print('exp_power shape:',exp_power.shape)
+    #print(exp_power)
+    #print('exp_power shape:',exp_power.shape)
     base=1-np.power(np.divide(np.subtract(x,a),a),2).T
-    print('base shape:',base.shape)
+    #print('base shape:',base.shape)
     return 0.5*d*np.power(base,exp_power).T
 
 def estimate_tail(a,b,c,r,x,theta):
     d=2*r
     theta=theta*math.pi/180
+    #print('Shape of theta:',theta.shape,'x.shape:',x.shape)
     y1=0.5*d
-    y2= np.power((x-a-b),2)*((3*d)/(2*c*c) - math.tan(theta)/c)
-    y3= ((d/(c*c*c)) - math.tan(theta)/(c*c))*np.power((x-a-b),3)
+    z= np.tan(theta)/c
+    #print('Shape of z:',z.shape)
+    zz= ((3*d)/(2*c*c)-z)
+    #print('zz shape:',zz.shape)
+    y2= np.multiply(np.power((x-a-b),2).T,zz).T
+    #print('y2:',y2.shape)
+    zzz= ((d/(c*c*c))-(np.tan(theta)/(c*c)))
+    y3= np.multiply(np.power((x-a-b),3).T,zzz).T
+    #print('y3:',y3.shape)
     return (y1-y2+y3)
 
 def check_nose_validity(myring_nose_loc,a,r):
@@ -39,43 +47,35 @@ def check_tail_validity(myring_tai_loc,c,r):
     return True
 
 
-def print_design(): 
-    plt.plot(x_n, y)
-    plt.scatter(x_n,y)
-    return 0
-
-
 
 
 
 def run_single_design(): 
-    a = 300; b=500; c=1000; r =100; n=5; theta=50
-    d=2*r
-    x_n = np.array([0, a / 5, 2 * a / 5, 3 * a / 5, 4 * a / 5, a]);
-    x_t = np.array([a + b, a + b + c / 5, a + b + 2 * c / 5, a + b + 3 * c / 5, a + b + 4 * c / 5, a + b + c]);
-    x_b = np.array([a, a + b * 1 / 6, a + b * 2 / 6, a + b * 3 / 6, a + b * 4 / 6, a + b * 5 / 6, a + b])
+    a = 300; b=500; c=1000; r =100; n=0.5; theta=1
+    x_n = np.atleast_2d(np.array([0, a / 5, 2 * a / 5, 3 * a / 5, 4 * a / 5, a]));
+    x_t = np.atleast_2d(np.array([a + b, a + b + c / 5, a + b + 2 * c / 5, a + b + 3 * c / 5, a + b + 4 * c / 5, a + b + c]));
+    x_b =np.array([a, a + b * 1 / 6, a + b * 2 / 6, a + b * 3 / 6, a + b * 4 / 6, a + b * 5 / 6, a + b])
     y_b = np.array([r, r, r, r, r, r, r])
     y_b = y_b.astype('float64')
     
     x_ref=np.array([0,a,a+b,a+b+c])
     y_ref=np.array([0,r,r,0])
-    y = estimate_nose(a, d, x_n, n)
-    z = estimate_tail(a, b, c, d, x_t, theta)
+    y = estimate_nose(a, r, x_n, n)
+    z = estimate_tail(a, b, c, r, x_t, theta)
 
     figname = './fig_hull/GA_a' + str(round(a, 2)) + 'c_' + str(round(c, 2)) + 'n_' + str(
         round(n, 2)) + '_theta_' + str(round(theta, 2)) + '.png'
     plt.figure(figsize=(10, 3))
-    plt.plot(x_n, y)
+    print('x_n',x_n.shape,'y:',y.shape)
+    plt.plot(x_n[0,:], y[0,:])
     plt.scatter(x_n,y)
-    plt.plot(x_t, z)
+    plt.plot(x_t[0,:], z[0,:])
     plt.scatter(x_t,z)
     plt.plot(x_b, y_b)
-    plt.plot(x_n, -1 * y)
-    plt.plot(x_t, -1 * z)
+    plt.plot(x_n[0,:], -1 * y[0,:])
+    plt.plot(x_t[0,:], -1 * z[0,:])
     plt.plot(x_b, -1 * y_b)
-    plt.plot(x_n, y)
-    plt.plot(x_t, z)
-    plt.plot(x_b, y_b)
+  
     
     #plt.savefig(figname)
     plt.plot(x_ref, y_ref)
@@ -98,9 +98,10 @@ def get_pieces(a,pieces):
 
 
 def run_multiple_designs(a=100,b=50,c=200,r=25): 
-       
+    ref=True
+    
     fix_param= np.array([a,b,c,r])
-    bounds=[[0.1,5],[1,50]]
+    bounds=[[0.1,5],[1,10]]
     grid = 3
     pieces=5
     
@@ -133,7 +134,10 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
     
     #ref= [r/5,2*r/5, 3*r/5,4*r/5]
     nose_y= estimate_nose(a,r,nose_x,ds[:,4])
+    tail_y= estimate_tail(a,b,c,r,tail_x,ds[:,5]) 
+    
     print('nose_x shape:',nose_x.shape,'Nose_y:',nose_y.shape)
+    print('tail_x shape:',tail_x.shape,'Tail_y:',tail_y.shape)
     for i in range(nose_x.shape[0]): 
         plt.figure(figsize=(10, 3))
         plt.plot(nose_x[i,:], nose_y[i,:])
@@ -142,13 +146,19 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
         
         plt.plot(x_body, y_body)
         plt.plot(x_body, -1*y_body)
+        
+        plt.plot(tail_x[i,:], tail_y[i,:])
+        plt.scatter(tail_x[i,:], tail_y[i,:])
+        plt.plot(tail_x[i,:], -1*tail_y[i,:])
+        
+        
+        if ref==True: 
+            plt.plot(x_ref, y_ref)
+            plt.plot(x_ref, -1*y_ref)
+            plt.vlines(a, -1*r, r)
+            plt.vlines(a+b, -1*r, r)
         plt.show()
         plt.close()
-    
-    
-    
-    
-    
     
     return ds
 
