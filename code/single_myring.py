@@ -14,7 +14,16 @@ import matplotlib.pyplot as plt
 import math 
 
 #########
-def estimate_nose(a,r,x,n):
+class myring_hull_ds(): 
+   def __init__(self, a, b,c,r):
+        self.a=a
+        self.b=b
+        self.c=c
+        self.r=r
+      
+        
+        
+   def estimate_nose(self,a,r,x,n):
     d=2*r
     #print('n shape:',n.shape)
     exp_power=np.transpose(np.divide(1,n))
@@ -24,7 +33,7 @@ def estimate_nose(a,r,x,n):
     #print('base shape:',base.shape)
     return 0.5*d*np.power(base,exp_power).T
 
-def estimate_tail(a,b,c,r,x,theta):
+   def estimate_tail(self,a,b,c,r,x,theta):
     d=2*r
     theta=theta*math.pi/180
     #print('Shape of theta:',theta.shape,'x.shape:',x.shape)
@@ -40,16 +49,7 @@ def estimate_tail(a,b,c,r,x,theta):
     #print('y3:',y3.shape)
     return (y1-y2+y3)
 
-def check_nose_validity(myring_nose_loc,a,r):
-    return True
-def check_tail_validity(myring_tai_loc,c,r):
-    return True
-
-
-
-
-
-def run_single_design(a = 300, b=500, c=1000, r =1000, n=0.5, theta=1): 
+   def run_single_design(self,a = 300, b=500, c=1000, r =1000, n=0.5, theta=1): 
     x_n = np.atleast_2d(np.array([0, a / 5, 2 * a / 5, 3 * a / 5, 4 * a / 5, a]));
     x_t = np.atleast_2d(np.array([a + b, a + b + c / 5, a + b + 2 * c / 5, a + b + 3 * c / 5, a + b + 4 * c / 5, a + b + c]));
     x_b =np.array([a, a + b * 1 / 6, a + b * 2 / 6, a + b * 3 / 6, a + b * 4 / 6, a + b * 5 / 6, a + b])
@@ -58,11 +58,11 @@ def run_single_design(a = 300, b=500, c=1000, r =1000, n=0.5, theta=1):
     
     x_ref=np.array([0,a,a+b,a+b+c])
     y_ref=np.array([0,r,r,0])
-    y = estimate_nose(a, r, x_n, n)
-    z = estimate_tail(a, b, c, r, x_t, theta)
+    y = self.estimate_nose(a, r, x_n, n)
+    z = self.estimate_tail(a, b, c, r, x_t, theta)
 
-    figname = './fig_hull/GA_a' + str(round(a, 2)) + 'c_' + str(round(c, 2)) + 'n_' + str(
-        round(n, 2)) + '_theta_' + str(round(theta, 2)) + '.png'
+    #figname = './fig_hull/GA_a' + str(round(a, 2)) + 'c_' + str(round(c, 2)) + 'n_' + str(
+    #    round(n, 2)) + '_theta_' + str(round(theta, 2)) + '.png'
     plt.figure(figsize=(10, 3))
     print('x_n',x_n.shape,'y:',y.shape)
     plt.plot(x_n[0,:], y[0,:])
@@ -85,23 +85,21 @@ def run_single_design(a = 300, b=500, c=1000, r =1000, n=0.5, theta=1):
     plt.close()
 
 
-def get_pieces(a,pieces):
-    
+   def get_pieces(self,a,pieces): 
     a_n=np.repeat(a/pieces,pieces+1,axis=1)
     index=np.arange(pieces+1)
     #print('Index is:',index)
     _loc_= np.multiply(a_n,index)
     return _loc_
 
-
-
-def run_multiple_designs(a=1000,b=500,c=1000,r=675,grid=200,pieces=6): 
+   def run_multiple_designs(self,grid,pieces):
+    print('grid is:',grid,'pieces are:',pieces)
+    a=self.a; b=self.b; c=self.c; r=self.r
     ref=True; plot_sketch=False
     
     fix_param= np.array([a,b,c,r])
     bounds=[[0.1,10],[1,50]]
-    #grid = 200
-    #pieces=6
+    
     
     ref_design_Y=np.arange(pieces+1)* r/pieces
     print('ref_design Y:', ref_design_Y)
@@ -127,15 +125,15 @@ def run_multiple_designs(a=1000,b=500,c=1000,r=675,grid=200,pieces=6):
     print('DS:',ds.shape)
     print('X:',X.shape)
     
-    nose_x= get_pieces(ds[:,0].reshape(-1,1), pieces)
-    _t_p_=  get_pieces(ds[:,2].reshape(-1,1), pieces)
+    nose_x= self.get_pieces(ds[:,0].reshape(-1,1), pieces)
+    _t_p_=  self.get_pieces(ds[:,2].reshape(-1,1), pieces)
     tail_x= a+b+_t_p_
     print('Nose_X:',nose_x.shape)
     print('Tail_X',tail_x.shape)
     
     #ref= [r/5,2*r/5, 3*r/5,4*r/5]
-    nose_y= estimate_nose(a,r,nose_x,ds[:,4])
-    tail_y= estimate_tail(a,b,c,r,tail_x,ds[:,5]) 
+    nose_y= self.estimate_nose(a,r,nose_x,ds[:,4])
+    tail_y= self.estimate_tail(a,b,c,r,tail_x,ds[:,5]) 
     
     
     print(nose_y[:,1:-1].shape,'tail:',tail_y[:,1:-1])
@@ -188,9 +186,10 @@ def run_multiple_designs(a=1000,b=500,c=1000,r=675,grid=200,pieces=6):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    run_single_design()
     
-    ds,feasible_ds,_=run_multiple_designs() 
+    hull_ds= myring_hull_ds(a=1000,b=200,c=1000,r=50)
+    
+    ds,feasible_ds,_=hull_ds.run_multiple_designs(200,10)
     if feasible_ds.shape[0]>1:
      n_max,n_min=np.max(feasible_ds[:,4]),np.min(feasible_ds[:,4])
      theta_max,theta_min=np.max(feasible_ds[:,5]),np.min(feasible_ds[:,5])
@@ -212,19 +211,6 @@ if __name__ == '__main__':
      for i in range(1):
       idx=np.random.randint(0,feasible_ds.shape[0])
       print('idx is:',idx)
-      run_single_design(feasible_ds[idx][0],feasible_ds[idx][1],feasible_ds[idx][2],feasible_ds[idx][3],feasible_ds[idx][4],feasible_ds[idx][5])
+      hull_ds.run_single_design(feasible_ds[idx][0],feasible_ds[idx][1],feasible_ds[idx][2],feasible_ds[idx][3],feasible_ds[idx][4],feasible_ds[idx][5])
     
     
-    
-    """
-    power=np.array([3,2])
-    base=np.array([[1,2,3],[4,5,6]]).T
-    print(base.T)
-    print('power:',power.shape,'base:',base.shape)
-    d= np.power(base,power)
-    print(d.T)
- 
-    a= np.array([[True,False],[True,True]])
-    c=np.all(a,axis=1)
-    """
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
