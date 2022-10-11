@@ -11,8 +11,7 @@ Created on Mon Oct 10 12:10:56 2022
 
 import numpy as np
 import matplotlib.pyplot as plt
-import math
-import random 
+import math 
 
 #########
 def estimate_nose(a,r,x,n):
@@ -50,8 +49,7 @@ def check_tail_validity(myring_tai_loc,c,r):
 
 
 
-def run_single_design(): 
-    a = 300; b=500; c=1000; r =100; n=0.5; theta=1
+def run_single_design(a = 300, b=500, c=1000, r =1000, n=0.5, theta=1): 
     x_n = np.atleast_2d(np.array([0, a / 5, 2 * a / 5, 3 * a / 5, 4 * a / 5, a]));
     x_t = np.atleast_2d(np.array([a + b, a + b + c / 5, a + b + 2 * c / 5, a + b + 3 * c / 5, a + b + 4 * c / 5, a + b + c]));
     x_b =np.array([a, a + b * 1 / 6, a + b * 2 / 6, a + b * 3 / 6, a + b * 4 / 6, a + b * 5 / 6, a + b])
@@ -97,13 +95,17 @@ def get_pieces(a,pieces):
 
 
 
-def run_multiple_designs(a=100,b=50,c=200,r=25): 
-    ref=True
+def run_multiple_designs(a=1000,b=500,c=1000,r=675,grid=200,pieces=6): 
+    ref=True; plot_sketch=False
     
     fix_param= np.array([a,b,c,r])
-    bounds=[[0.1,5],[1,10]]
-    grid = 3
-    pieces=5
+    bounds=[[0.1,10],[1,50]]
+    #grid = 200
+    #pieces=6
+    
+    ref_design_Y=np.arange(pieces+1)* r/pieces
+    print('ref_design Y:', ref_design_Y)
+    effective_ref_design_Y= ref_design_Y[1:-1].reshape(1,-1)
     
     x_ref=np.array([0,a,a+b,a+b+c])
     y_ref=np.array([0,r,r,0])
@@ -122,23 +124,37 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
     ds= np.concatenate((Y,X),axis=1)
     print(ds)
     #print(d_p)
-    print(ds.shape)
-    print(X.shape)
+    print('DS:',ds.shape)
+    print('X:',X.shape)
     
     nose_x= get_pieces(ds[:,0].reshape(-1,1), pieces)
     _t_p_=  get_pieces(ds[:,2].reshape(-1,1), pieces)
     tail_x= a+b+_t_p_
-    print(nose_x)
-    print(_t_p_)
-    print(tail_x)
+    print('Nose_X:',nose_x.shape)
+    print('Tail_X',tail_x.shape)
     
     #ref= [r/5,2*r/5, 3*r/5,4*r/5]
     nose_y= estimate_nose(a,r,nose_x,ds[:,4])
     tail_y= estimate_tail(a,b,c,r,tail_x,ds[:,5]) 
     
+    
+    print(nose_y[:,1:-1].shape,'tail:',tail_y[:,1:-1])
+    nose_interference_matrix=np.greater_equal(nose_y[:,1:-1],effective_ref_design_Y)
+    tail_interference_matrix=np.greater_equal(tail_y[:,1:-1],np.flip(effective_ref_design_Y))
+    
+    print('nose_interference:',nose_interference_matrix)
+    print('tail_interference:',tail_interference_matrix)
+    
+    nose_interference=np.all(nose_interference_matrix,axis=1)
+    tail_interference=np.all(tail_interference_matrix,axis=1)
+    feasible_design= np.logical_and(nose_interference,tail_interference)
+    print('N I:',nose_interference,'T I:',tail_interference,'feasible design:',feasible_design)
+    
+    
     print('nose_x shape:',nose_x.shape,'Nose_y:',nose_y.shape)
     print('tail_x shape:',tail_x.shape,'Tail_y:',tail_y.shape)
-    for i in range(nose_x.shape[0]): 
+    if plot_sketch==True:
+     for i in range(nose_x.shape[0]): 
         plt.figure(figsize=(10, 3))
         plt.plot(nose_x[i,:], nose_y[i,:])
         plt.scatter(nose_x[i,:], nose_y[i,:])
@@ -150,7 +166,10 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
         plt.plot(tail_x[i,:], tail_y[i,:])
         plt.scatter(tail_x[i,:], tail_y[i,:])
         plt.plot(tail_x[i,:], -1*tail_y[i,:])
-        
+        if feasible_design[i]==True: 
+            plt.title('Feasible design')
+        else: 
+            plt.title('Infeasible design')
         
         if ref==True: 
             plt.plot(x_ref, y_ref)
@@ -159,16 +178,44 @@ def run_multiple_designs(a=100,b=50,c=200,r=25):
             plt.vlines(a+b, -1*r, r)
         plt.show()
         plt.close()
+    feasible_ds= ds[feasible_design]
+    infeasible_ds=ds[np.logical_not(feasible_design)]
+    print('DS:',ds.shape, 'Feasible ds:',feasible_ds.shape,'Infeasible DS:',infeasible_ds.shape)
     
-    return ds
-
+    return ds,feasible_ds, infeasible_ds 
 
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #run_single_design()
-    run_multiple_designs()
+    run_single_design()
+    
+    ds,feasible_ds,_=run_multiple_designs() 
+    if feasible_ds.shape[0]>1:
+     n_max,n_min=np.max(feasible_ds[:,4]),np.min(feasible_ds[:,4])
+     theta_max,theta_min=np.max(feasible_ds[:,5]),np.min(feasible_ds[:,5])
+    
+     plt.figure(figsize=(10, 3))
+     plt.scatter(ds[:,4],ds[:,5],label='infeasible')
+     plt.scatter(feasible_ds[:,4], feasible_ds[:,5],label='feasible')
+     plt.legend(loc='upper center')
+     plt.xlabel('nose(n)')
+     plt.ylabel('tail(theta)')
+     plt.hlines(theta_min, 0.1, 10)
+     plt.hlines(theta_max, 0.1, 10)
+     plt.vlines(n_min, 1, 50)
+     plt.vlines(n_max, 1, 50)
+     plt.show()
+     plt.close()
+    
+    if feasible_ds.shape[0]>1:
+     for i in range(1):
+      idx=np.random.randint(0,feasible_ds.shape[0])
+      print('idx is:',idx)
+      run_single_design(feasible_ds[idx][0],feasible_ds[idx][1],feasible_ds[idx][2],feasible_ds[idx][3],feasible_ds[idx][4],feasible_ds[idx][5])
+    
+    
+    
     """
     power=np.array([3,2])
     base=np.array([[1,2,3],[4,5,6]]).T
@@ -176,5 +223,8 @@ if __name__ == '__main__':
     print('power:',power.shape,'base:',base.shape)
     d= np.power(base,power)
     print(d.T)
-    """ 
+ 
+    a= np.array([[True,False],[True,True]])
+    c=np.all(a,axis=1)
+    """
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
