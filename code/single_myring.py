@@ -15,11 +15,13 @@ import math
 
 #########
 class myring_hull_ds(): 
-   def __init__(self, a, b,c,r):
+   def __init__(self, a, b,c,r,a_ext=0,c_ext=0):
         self.a=a
         self.b=b
         self.c=c
         self.r=r
+        self.a_ext=a_ext
+        self.c_ext=c_ext
       
         
         
@@ -183,10 +185,154 @@ class myring_hull_ds():
     return ds,feasible_ds, infeasible_ds 
 
 
+   def run_extened_nosetail_designs(self,grid,pieces):
+    print('grid is:',grid,'pieces are:',pieces)
+    a=self.a; b=self.b; c=self.c; r=self.r;a_ext=self.a_ext;c_ext=self.c_ext
+    ref=True; plot_sketch=True
+    
+    fix_param= np.array([a,b,c,r])
+    bounds=[[0.1,10],[1,50]]
+    
+    
+    ref_design_Y=np.arange(pieces+1)* r/pieces
+    print('ref_design Y:', ref_design_Y)
+    effective_ref_design_Y= ref_design_Y[1:-1].reshape(1,-1)
+    print('Effective ref_design Y:', effective_ref_design_Y)
+    x_ref=np.array([a_ext,a+a_ext,a+a_ext+b,a+a_ext+b+c])
+    y_ref=np.array([0,r,r,0])
+    
+    #x_body=np.array([a,a+b])
+    #y_body=np.array([r,r])
+    
+    print('bound:',bounds[0][0],bounds[0][1],bounds[1][0],bounds[1][1])
+ 
+    X1 = np.linspace(bounds[0][0], bounds[0][1], grid)
+    X2 = np.linspace(bounds[1][0], bounds[1][1], grid)
+    
+    x1, x2 = np.meshgrid(X1, X2)
+    X = np.hstack((x1.reshape(grid*grid,1),x2.reshape(grid*grid,1)))
+    Y= np.multiply(np.ones((X.shape[0],4)),fix_param)
+    ds= np.concatenate((Y,X),axis=1)
+    print(ds)
+    #print(d_p)
+    print('DS:',ds.shape)
+    print('X:',X.shape)
+    
+    _n_p_= self.get_pieces(ds[:,0].reshape(-1,1), pieces)
+    _t_p_=  self.get_pieces(ds[:,2].reshape(-1,1), pieces)
+    
+    nose_x= a_ext+_n_p_
+    tail_x= a+a_ext+b+_t_p_
+    print('Nose_X:',nose_x.shape)
+    print('Tail_X',tail_x.shape)
+    a_eff= a+a_ext
+    c_eff= c+c_ext
+    #ref= [r/5,2*r/5, 3*r/5,4*r/5]
+    nose_y= self.estimate_nose(a_eff,r,nose_x,ds[:,4])
+    tail_y= self.estimate_tail(a_eff,b,c_eff,r,tail_x,ds[:,5]) 
+    
+    
+    
+    print(nose_y[:,1:-1].shape,'tail:',tail_y[:,1:-1])
+    nose_interference_matrix=np.greater_equal(nose_y[:,1:-1],effective_ref_design_Y)
+    tail_interference_matrix=np.greater_equal(tail_y[:,1:-1],np.flip(effective_ref_design_Y))
+    
+    print('nose_interference:',nose_interference_matrix)
+    print('tail_interference:',tail_interference_matrix)
+    
+    nose_interference=np.all(nose_interference_matrix,axis=1)
+    tail_interference=np.all(tail_interference_matrix,axis=1)
+    feasible_design= np.logical_and(nose_interference,tail_interference)
+    print('N I:',nose_interference,'T I:',tail_interference,'feasible design:',feasible_design)
+    
+    
+    
+    
+    print('nose_x shape:',nose_x.shape,'Nose_y:',nose_y.shape)
+    print('tail_x shape:',tail_x.shape,'Tail_y:',tail_y.shape)
+    if plot_sketch==True:
+        
+     _aext_p_= self.get_pieces(np.atleast_2d(np.array(a_ext)), pieces)     
+     ext_nose_y= self.estimate_nose(a_eff,r,_aext_p_,ds[:,4])
+     
+     _c_ext_p_=  self.get_pieces(np.atleast_2d(np.array(c_ext)), pieces) 
+     ext_tail_y= self.estimate_tail(a_eff,b,c_eff,r,a_eff+b+c+_c_ext_p_,ds[:,5]) 
+     print('ext_nose_y:',ext_nose_y.shape,'_a_ext_p_:',_aext_p_.shape)
+     print('ext_tail_y:',ext_nose_y.shape,'_c_ext_p_:',_c_ext_p_.shape)
+        
+     for i in range(nose_x.shape[0]): 
+        plt.figure(figsize=(10, 3))
+        plt.plot(nose_x[i,:], nose_y[i,:])
+        plt.scatter(nose_x[i,:], nose_y[i,:])
+        plt.plot(nose_x[i,:], -1*nose_y[i,:])
+        
+        plt.plot(_aext_p_[0], ext_nose_y[i,:])
+        plt.plot(_aext_p_[0], -1*ext_nose_y[i,:])
+        
+        plt.plot(a_eff+b+c+_c_ext_p_[0], ext_tail_y[i,:])
+        plt.plot(a_eff+b+c+_c_ext_p_[0], -1*ext_tail_y[i,:])
+        #plt.scatter(nose_x[i,:], nose_y[i,:])
+        
+        #plt.plot(x_body, y_body)
+        #plt.plot(x_body, -1*y_body)
+        
+        plt.plot(tail_x[i,:], tail_y[i,:])
+        plt.scatter(tail_x[i,:], tail_y[i,:])
+        plt.plot(tail_x[i,:], -1*tail_y[i,:])
+        if feasible_design[i]==True: 
+            plt.title('Feasible design')
+        else: 
+            plt.title('Infeasible design')
+        
+        if ref==True: 
+            plt.plot(x_ref, y_ref)
+            plt.plot(x_ref, -1*y_ref)
+            #plt.vlines(a_ext+a, -1*r, r)
+            #plt.vlines(a_ext+a+b, -1*r, r)
+        plt.show()
+        plt.close()
+    feasible_ds= ds[feasible_design]
+    infeasible_ds=ds[np.logical_not(feasible_design)]
+    print('DS:',ds.shape, 'Feasible ds:',feasible_ds.shape,'Infeasible DS:',infeasible_ds.shape)
+    
+    return ds,feasible_ds, infeasible_ds 
+
+
+
+
+
+
+
+
+
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     
+    hull_ds= myring_hull_ds(a=555,b=2664,c=500,r=513,a_ext=500,c_ext=2000)
+    
+    ds,feasible_ds,_=hull_ds.run_extened_nosetail_designs(4,10)
+    if feasible_ds.shape[0]>1:
+     n_max,n_min=np.max(feasible_ds[:,4]),np.min(feasible_ds[:,4])
+     theta_max,theta_min=np.max(feasible_ds[:,5]),np.min(feasible_ds[:,5])
+    
+     plt.figure(figsize=(10, 3))
+     plt.scatter(ds[:,4],ds[:,5],label='infeasible')
+     plt.scatter(feasible_ds[:,4], feasible_ds[:,5],label='feasible')
+     plt.legend(loc='upper center')
+     plt.xlabel('nose(n)')
+     plt.ylabel('tail(theta)')
+     plt.hlines(theta_min, 0.1, 10)
+     plt.hlines(theta_max, 0.1, 10)
+     plt.vlines(n_min, 1, 50)
+     plt.vlines(n_max, 1, 50)
+     plt.show()
+     plt.close()
+    
+    
+    
+    """
     hull_ds= myring_hull_ds(a=1000,b=200,c=1000,r=50)
     
     ds,feasible_ds,_=hull_ds.run_multiple_designs(200,10)
@@ -213,4 +359,4 @@ if __name__ == '__main__':
       print('idx is:',idx)
       hull_ds.run_single_design(feasible_ds[idx][0],feasible_ds[idx][1],feasible_ds[idx][2],feasible_ds[idx][3],feasible_ds[idx][4],feasible_ds[idx][5])
     
-    
+    """
