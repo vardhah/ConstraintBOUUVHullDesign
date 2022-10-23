@@ -180,26 +180,20 @@ class myring_hull_ds():
 
 
    def check_feasibility_design(self,a,b,c,r,n,theta,a_ext,c_ext,pieces):
-    print('pieces are:',pieces)
+    #print('pieces are:',pieces)
     
     ref=True; plot_sketch=True
-    
-    fix_param= np.array([a,b,c,r])
-    
-    
+
     ref_design_Y=np.arange(pieces+1)* r/pieces
-    print('ref_design Y:', ref_design_Y)
+    #print('ref_design Y:', ref_design_Y)
     effective_ref_design_Y= ref_design_Y[1:-1].reshape(1,-1)
-    print('Effective ref_design Y:', effective_ref_design_Y)
+    #print('Effective ref_design Y:', effective_ref_design_Y)
     x_ref=np.array([a_ext,a+a_ext,a+a_ext+b,a+a_ext+b+c])
     y_ref=np.array([0,r,r,0])
     
     
     
     ds= np.atleast_2d(np.array([a,b,c,r,n,theta]))
-    print(ds)
-    #print(d_p)
-    print('DS:',ds.shape)
 
     
     _n_p_= self.get_pieces(ds[:,0].reshape(-1,1), pieces)
@@ -207,33 +201,20 @@ class myring_hull_ds():
     
     nose_x= a_ext+_n_p_
     tail_x= a+a_ext+b+_t_p_
-    print('Nose_X:',nose_x.shape)
-    print('Tail_X',tail_x.shape)
+
     a_eff= a+a_ext
     c_eff= c+c_ext
-    #ref= [r/5,2*r/5, 3*r/5,4*r/5]
     nose_y= self.estimate_nose(a_eff,r,nose_x,n)
     tail_y= self.estimate_tail(a_eff,b,c_eff,r,tail_x,theta) 
     
-    
-    
-    print(nose_y[:,1:-1].shape,'tail:',tail_y[:,1:-1])
     nose_interference_matrix=np.greater_equal(nose_y[:,1:-1],effective_ref_design_Y)
     tail_interference_matrix=np.greater_equal(tail_y[:,1:-1],np.flip(effective_ref_design_Y))
-    
-    print('nose_interference:',nose_interference_matrix)
-    print('tail_interference:',tail_interference_matrix)
+
     
     nose_interference=np.all(nose_interference_matrix,axis=1)
     tail_interference=np.all(tail_interference_matrix,axis=1)
     feasible_design= np.logical_and(nose_interference,tail_interference)
-    print('N I:',nose_interference,'T I:',tail_interference,'feasible design:',feasible_design)
-    
-    
-    
-    
-    print('nose_x shape:',nose_x.shape,'Nose_y:',nose_y.shape)
-    print('tail_x shape:',tail_x.shape,'Tail_y:',tail_y.shape)
+
     if plot_sketch==True:
         
      _aext_p_= self.get_pieces(np.atleast_2d(np.array(a_ext)), pieces)     
@@ -241,8 +222,6 @@ class myring_hull_ds():
      
      _c_ext_p_=  self.get_pieces(np.atleast_2d(np.array(c_ext)), pieces) 
      ext_tail_y= self.estimate_tail(a_eff,b,c_eff,r,a_eff+b+c+_c_ext_p_,ds[:,5]) 
-     print('ext_nose_y:',ext_nose_y.shape,'_a_ext_p_:',_aext_p_.shape)
-     print('ext_tail_y:',ext_nose_y.shape,'_c_ext_p_:',_c_ext_p_.shape)
         
      for i in range(nose_x.shape[0]): 
         plt.figure(figsize=(10, 3))
@@ -276,10 +255,8 @@ class myring_hull_ds():
         plt.show()
         plt.close()
     feasible_ds= ds[feasible_design]
-    infeasible_ds=ds[np.logical_not(feasible_design)]
-    print('DS:',ds.shape, 'Feasible ds:',feasible_ds.shape,'Infeasible DS:',infeasible_ds.shape)
-    
-    return ds,feasible_ds, infeasible_ds 
+
+    return feasible_ds.shape[0] 
 
 
 
@@ -410,30 +387,14 @@ class myring_hull_ds():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    
+    a=[10]
+    print(max(a))
     hull_ds= myring_hull_ds()
     
     
-    ds,feasible_ds,_=hull_ds.check_feasibility_design(a=555,b=2664,c=500,r=513,n=0.010,theta=10,a_ext=1000,c_ext=1000,pieces=10)
+    feasible=hull_ds.check_feasibility_design(a=555,b=2664,c=500,r=513,n=1,theta=15,a_ext=0,c_ext=0,pieces=10)
     
-    
-    #ds,feasible_ds,_=hull_ds.run_extened_nosetail_designs(4,10)
-    if feasible_ds.shape[0]>1:
-     n_max,n_min=np.max(feasible_ds[:,4]),np.min(feasible_ds[:,4])
-     theta_max,theta_min=np.max(feasible_ds[:,5]),np.min(feasible_ds[:,5])
-    
-     plt.figure(figsize=(10, 3))
-     plt.scatter(ds[:,4],ds[:,5],label='infeasible')
-     plt.scatter(feasible_ds[:,4], feasible_ds[:,5],label='feasible')
-     plt.legend(loc='upper center')
-     plt.xlabel('nose(n)')
-     plt.ylabel('tail(theta)')
-     plt.hlines(theta_min, 0.1, 10)
-     plt.hlines(theta_max, 0.1, 10)
-     plt.vlines(n_min, 1, 50)
-     plt.vlines(n_max, 1, 50)
-     plt.show()
-     plt.close()
+    print('feasible:',feasible)
     
     
     
