@@ -57,8 +57,8 @@ def calculate_drag(cf,surfarea,vel):
 #a=342.3;c=494.01;n=11.33;theta=3.90 #GA 
 #a=432.66;c=51.15;n=4.19;theta=12.52 #VMC
 #a=545.65;c=549.52;n=1.5;theta=14.46 #LHC
-a=555;c=500;n=1.98;theta=46.36 #NM
-b=2664;r=513
+a=555.2;c=500;n=0.7467;theta=50 #NM
+b=2823.98;r=513
 print('b is:',b)
 #b=1369.7788
 d=2*r  
