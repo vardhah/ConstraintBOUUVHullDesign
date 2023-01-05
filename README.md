@@ -5,7 +5,7 @@ In this work, the research motivation is to integrate and deploy the AI based co
 
 
 
-<img src="./images/constrained-BO_cad_cfd.png" width="500" height="200" title="Employee Data title">
+<img src="./images/constrained-BO_cad_cfd.png" width="800" height="300" title="Employee Data title">
 
 # Constraint: 
 <img src="./images/constrained_designnnn.png" width="600" height="150">
@@ -23,3 +23,12 @@ In this work, the research motivation is to integrate and deploy the AI based co
 <img src="./images/Vanderbilt-External v111.png" width="600" height="100">
 
 <img src="./images/vandy_external_free.png" width="600" height="100">
+
+
+## How to use the code: 
+For running you need to install two docker container 
+1. Docker to run CFD: can be downloded from [here](https://hub.docker.com/r/kishorestevens/dexof/tags)
+2. Docker to run CAD design and assembly from [here](https://hub.docker.com/r/vardhah/freecad) 
+
+Once both dockers are installed, we need to install optimization algotrithms - we use GpOPt for this work. 
+
