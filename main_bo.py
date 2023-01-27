@@ -39,7 +39,7 @@ dst='./cfd_sim/stl_cfd'
 
 
 hull_ds= myring_hull_ds()
-drag_storage=[]  
+drag_storage=[73.631122]  
     
 
 
@@ -98,8 +98,8 @@ def run_bo(run_id=0,aquistion='EI',seeds=0):
 	deletefiles('./cad_sim/fig_hull')
 	bounds = [{'name': 'n', 'type': 'continuous', 'domain': (1,50)},
             {'name': 'theta', 'type': 'continuous', 'domain': (1,50)},
-            {'name': 'a_ext', 'type': 'continuous', 'domain': (0,2500)},
-            {'name': 'c_ext', 'type': 'continuous', 'domain': (0,2500)}]    
+            {'name': 'a_ext', 'type': 'continuous', 'domain': (0,0)},
+            {'name': 'c_ext', 'type': 'continuous', 'domain': (0,0)}]    
 	print('Bound is:',bounds)
 	max_time  = None 
 	max_iter  = 50
