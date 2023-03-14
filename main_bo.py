@@ -19,8 +19,9 @@ from single_myring import myring_hull_ds
 
 
 # parameter edit for running the file 
-a=555; b=2664;c=500;r=513; a_ext=0;c_ext=0
-data_file_name='./data_bo/bo_LCB_design1'
+a=555; b=2664;c=500;r=513;                     # Fixed constraint
+a_ext=0;c_ext=0                                # for exp2 set a_ext & c_ext = 2500 ; It define allowable extension in nose_length & tail legth during optimization. 
+data_file_name='./data_bo/bo_LCB_design1'      # data file name- change for each experiment
 ##
 
 
@@ -39,7 +40,7 @@ dst='./cfd_sim/stl_cfd'
 
 
 hull_ds= myring_hull_ds()
-drag_storage=[73.631122]  
+drag_storage=[97.137896]  
     
 
 
@@ -93,13 +94,13 @@ def run_cad_cfd(x):
 
 
 def run_bo(run_id=0,aquistion='EI',seeds=0):
-	
+	global a_ext, c_ext
 	################################################
 	deletefiles('./cad_sim/fig_hull')
 	bounds = [{'name': 'n', 'type': 'continuous', 'domain': (1,50)},
             {'name': 'theta', 'type': 'continuous', 'domain': (1,50)},
-            {'name': 'a_ext', 'type': 'continuous', 'domain': (0,0)},
-            {'name': 'c_ext', 'type': 'continuous', 'domain': (0,0)}]    
+            {'name': 'a_ext', 'type': 'continuous', 'domain': (0,a_ext)},
+            {'name': 'c_ext', 'type': 'continuous', 'domain': (0,c_ext)}]    
 	print('Bound is:',bounds)
 	max_time  = None 
 	max_iter  = 50
@@ -153,19 +154,12 @@ def run_bo(run_id=0,aquistion='EI',seeds=0):
 
 
 if __name__=='__main__':
-	#run=[1,2,3,4,5]; seeds=[11,13,17,19,21]
 	run=[1]; seeds=[17]	
-	aqu1='EI'; aqu2='LCB'
-
+	aqu2='LCB'
 	
-
 	for i in range(len(run)):
-		#run_bo(run[i],aqu1,seeds[i])
 		run_bo(run[i],aqu2,seeds[i])  
 		#print('In BO run')
 	
-	#myBopt2D.plot_acquisition()  
-	#myBopt2D.plot_convergence()
-
 	
 	

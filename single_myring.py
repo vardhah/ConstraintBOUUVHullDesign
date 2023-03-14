@@ -214,6 +214,8 @@ class myring_hull_ds():
     nose_interference=np.all(nose_interference_matrix,axis=1)
     tail_interference=np.all(tail_interference_matrix,axis=1)
     feasible_design= np.logical_and(nose_interference,tail_interference)
+    print('nose_interference :',nose_interference,'Tail Interference:',tail_interference)
+    
 
     if plot_sketch==True:
         
@@ -222,7 +224,7 @@ class myring_hull_ds():
      
      _c_ext_p_=  self.get_pieces(np.atleast_2d(np.array(c_ext)), pieces) 
      ext_tail_y= self.estimate_tail(a_eff,b,c_eff,r,a_eff+b+c+_c_ext_p_,ds[:,5]) 
-     figname= './fig_feas_test/BO_a'+str(round(a, 2))+'c_'+str(round(c, 2))+'n_'+str(round(n, 2))+'_theta_'+str(round(theta, 2))+'.png'
+     figname= './fig/BO_a'+str(round(a, 2))+'c_'+str(round(c, 2))+'n_'+str(round(n, 2))+'_theta_'+str(round(theta, 2))+'.png'
 
      for i in range(nose_x.shape[0]): 
         plt.figure(figsize=(10, 3))
@@ -398,7 +400,7 @@ if __name__ == '__main__':
     hull_ds= myring_hull_ds()
     
     
-    feasible=hull_ds.check_feasibility_design(a=555,b=2664,c=500,r=513,n=1,theta=15,a_ext=0,c_ext=0,pieces=10)
+    feasible=hull_ds.check_feasibility_design(a=555,b=2664,c=500,r=513,n=1,theta=15,a_ext=1000,c_ext=1000,pieces=10)
     
     print('feasible:',feasible)
     
