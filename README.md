@@ -15,24 +15,30 @@ In this work, the research motivation is to integrate and deploy the AI based co
 <img src="./images/COnstrained_BO_pipelien.png" width="300" height="400">
 
 
-### Optimization process:
-<img src="./images/Vanderbilt-External v111.png" width="600" height="100">
 
 
 ### Results:
+optimal design by only changing nose shape and tail shape:
 <img src="./images/Vanderbilt-External v111.png" width="600" height="100">
 
+Drag force @ 1.1 m/s in sea water (density : 1027 Kg/m^3): 67 Newtons
+
+OPtimal design after providing flexibility of extending the nose and tail length along with their shapes:  
 <img src="./images/vandy_external_free.png" width="600" height="100">
 
+Drag force @ 1.1 m/s in sea water (density : 1027 Kg/m^3): 36 Newtons
+## How to reuse the code and experiment:
+Apart from python-3 (we used python 3.7) you also need to install Docker engine on your machine. We used linux based OS (Ubuntu 18.04) for our experiment, but any OS with python 3.7 should be fine (Let us know if it does not work for you).
 
-## How to use the code:
-For running you need to install two docker container
+For running the code, you need to download two docker container pre-installed with dependencies along with CAD and CFD software.  
 1. Docker to run CFD: can be downloaded from [here](https://hub.docker.com/r/kishorestevens/dexof/tags)
 2. Docker to run CAD design and assembly from [here](https://hub.docker.com/r/vardhah/freecad)
 
-Once both dockers are installed, we need to install optimization algorithms - we use GpOPt and pymoo for this work. Once everything is installed, experiment can be run by cloning the repository and running :
-1. main_bo.py : to run bayesian optimization with LCB as acquisition function.
-2. main_ga.py : to run pymoo with GA as optimization method.
+Once both dockers are ready, we also need to install optimization algorithms - we use [GpOPt](https://github.com/SheffieldML/GPyOpt) for this work. Once everything is installed, experiment can be run by cloning the repository and running :
+1. main_bo.py : To run bayesian optimization with LCB as acquisition function.
 
-### Comparison of results:
-GA (baseline) vs BO on a given budget using our framework:
+
+### Cite:
+If you like our work and want to cite, please use:
+
+Vardhan, Harsh, Peter Volgyesi, and Janos Sztipanovits. "Constrained Bayesian Optimization for Automatic Underwater Vehicle Hull Design." arXiv preprint arXiv:2302.14732 (2023).
