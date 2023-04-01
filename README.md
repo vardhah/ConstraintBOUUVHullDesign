@@ -32,7 +32,7 @@ Apart from python-3 (we used python 3.7) you also need to install Docker engine 
 
 For running the code, you need to download two docker container pre-installed with dependencies along with CAD and CFD software.  
 1. Docker to run CFD: can be downloaded from [here](https://hub.docker.com/r/kishorestevens/dexof/tags)
-2. Docker to run CAD design and assembly from [here](https://hub.docker.com/r/vardhah/freecad)
+2. Docker to run CAD design and assembly from [here](https://hub.docker.com/r/vardhah/freecad/tags)
 
 Once both dockers are ready, we also need to install optimization algorithms - we use [GpOPt](https://github.com/SheffieldML/GPyOpt) for this work. Once everything is installed, experiment can be run by cloning the repository and running :
 1. main_bo.py : To run bayesian optimization with LCB as acquisition function.
